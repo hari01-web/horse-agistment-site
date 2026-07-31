@@ -1,3 +1,5 @@
+import ContactForm from "@/components/site/ContactForm";
+
 export const metadata = {
   title: "Contact | Strathyre Park",
 };
@@ -30,10 +32,7 @@ export default function ContactPage() {
         </div>
       </dl>
 
-      <p className="mt-10 text-sm italic text-foreground/50">
-        A contact form is coming soon so you can message us directly from
-        this page.
-      </p>
+      <ContactForm />
     </div>
   );
 }
