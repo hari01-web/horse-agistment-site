@@ -18,12 +18,20 @@ export default async function PortalHome() {
         <h1 className="text-2xl font-semibold text-brand-dark">
           Your Horses
         </h1>
-        <Link
-          href="/portal/bookings"
-          className="rounded-full bg-brand px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
-        >
-          Bookings
-        </Link>
+        <div className="flex gap-3">
+          <Link
+            href="/portal/bookings"
+            className="rounded-full bg-brand px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
+          >
+            Bookings
+          </Link>
+          <Link
+            href="/portal/messages"
+            className="rounded-full border border-brand-dark/30 px-5 py-2 text-sm font-semibold text-brand-dark transition-colors hover:bg-brand-cream"
+          >
+            Messages
+          </Link>
+        </div>
       </div>
 
       {!horses || horses.length === 0 ? (

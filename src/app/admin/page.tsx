@@ -23,6 +23,12 @@ export default function AdminHome() {
           Manage Bookings
         </Link>
         <Link
+          href="/admin/messages"
+          className="inline-block rounded-full border border-brand-dark/30 px-6 py-2.5 text-sm font-semibold text-brand-dark transition-colors hover:bg-brand-cream"
+        >
+          Owner Messages
+        </Link>
+        <Link
           href="/admin/contact"
           className="inline-block rounded-full border border-brand-dark/30 px-6 py-2.5 text-sm font-semibold text-brand-dark transition-colors hover:bg-brand-cream"
         >
