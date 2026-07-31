@@ -29,6 +29,12 @@ export default function AdminHome() {
           Owner Messages
         </Link>
         <Link
+          href="/admin/requests"
+          className="inline-block rounded-full border border-brand-dark/30 px-6 py-2.5 text-sm font-semibold text-brand-dark transition-colors hover:bg-brand-cream"
+        >
+          Change Requests
+        </Link>
+        <Link
           href="/admin/contact"
           className="inline-block rounded-full border border-brand-dark/30 px-6 py-2.5 text-sm font-semibold text-brand-dark transition-colors hover:bg-brand-cream"
         >

@@ -52,7 +52,26 @@ export default function ServicesPage() {
         ))}
       </div>
 
-      <div className="mt-12">
+      <div className="mt-12 rounded-2xl border border-brand/20 bg-brand-cream/60 p-6">
+        <h2 className="text-lg font-semibold text-brand-dark">Pricing</h2>
+        <p className="mt-2 text-sm leading-6 text-foreground/80">
+          A flat weekly agistment rate covers your horse&apos;s regular plan
+          (rates TBC — get in touch for current pricing). Last-minute changes
+          outside the regular plan are billed as an{" "}
+          <strong>extra charge on top of the weekly rate</strong>, including:
+        </p>
+        <ul className="mt-3 list-inside list-disc text-sm leading-6 text-foreground/80">
+          <li>Feed changes</li>
+          <li>Rug changes</li>
+          <li>Holding your horse for the farrier, dental, or vet</li>
+        </ul>
+        <p className="mt-3 text-sm leading-6 text-foreground/80">
+          Owners can submit these requests directly through the owner portal,
+          where the extra charge is shown clearly before submitting.
+        </p>
+      </div>
+
+      <div className="mt-8">
         <Link
           href="/contact"
           className="rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"

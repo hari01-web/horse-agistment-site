@@ -31,6 +31,12 @@ export default async function PortalHome() {
           >
             Messages
           </Link>
+          <Link
+            href="/portal/requests"
+            className="rounded-full border border-brand-dark/30 px-5 py-2 text-sm font-semibold text-brand-dark transition-colors hover:bg-brand-cream"
+          >
+            Request a Change
+          </Link>
         </div>
       </div>
 
