@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -12,8 +13,15 @@ export default function Header() {
   return (
     <header className="border-b border-black/10 bg-background/95 backdrop-blur sticky top-0 z-50">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-        <Link href="/" className="text-lg font-semibold tracking-tight text-brand-dark">
-          Strathyre Park
+        <Link href="/" className="flex items-center">
+          <Image
+            src="/logo-navy-on-white.jpg"
+            alt="Strathyre Park"
+            width={160}
+            height={200}
+            className="h-14 w-auto"
+            priority
+          />
         </Link>
         <nav className="flex gap-6 text-sm font-medium">
           {NAV_LINKS.map((link) => (
