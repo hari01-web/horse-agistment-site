@@ -14,9 +14,17 @@ export default async function PortalHome() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-brand-dark">
-        Your Horses
-      </h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold text-brand-dark">
+          Your Horses
+        </h1>
+        <Link
+          href="/portal/bookings"
+          className="rounded-full bg-brand px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
+        >
+          Bookings
+        </Link>
+      </div>
 
       {!horses || horses.length === 0 ? (
         <p className="mt-4 text-foreground/70">

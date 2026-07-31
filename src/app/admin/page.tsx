@@ -17,6 +17,12 @@ export default function AdminHome() {
           Manage Horses
         </Link>
         <Link
+          href="/admin/bookings"
+          className="inline-block rounded-full border border-brand-dark/30 px-6 py-2.5 text-sm font-semibold text-brand-dark transition-colors hover:bg-brand-cream"
+        >
+          Manage Bookings
+        </Link>
+        <Link
           href="/admin/contact"
           className="inline-block rounded-full border border-brand-dark/30 px-6 py-2.5 text-sm font-semibold text-brand-dark transition-colors hover:bg-brand-cream"
         >
