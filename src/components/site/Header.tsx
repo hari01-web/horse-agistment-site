@@ -26,6 +26,12 @@ export default function Header() {
             </Link>
           ))}
         </nav>
+        <Link
+          href="/login"
+          className="rounded-full border border-brand-dark/30 px-4 py-1.5 text-sm font-medium text-brand-dark transition-colors hover:bg-brand-cream"
+        >
+          Owner Login
+        </Link>
       </div>
     </header>
   );
