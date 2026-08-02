@@ -10,7 +10,7 @@ export default async function PortalHorseDetailPage({
   const { horseId } = await params;
   const supabase = await createClient();
 
-  const [{ data: horse }, { data: updates }, { data: paddocks }] =
+  const [{ data: horse }, { data: updates }, { data: paddocks }, { data: injuryReports }] =
     await Promise.all([
       supabase.from("horses").select("*").eq("id", horseId).single(),
       supabase
@@ -23,6 +23,12 @@ export default async function PortalHorseDetailPage({
         .select("*")
         .order("row_position")
         .order("col_position"),
+      supabase
+        .from("injury_reports")
+        .select("*, injury_report_notes(*)")
+        .eq("horse_id", horseId)
+        .order("created_at", { ascending: false })
+        .order("created_at", { ascending: true, foreignTable: "injury_report_notes" }),
     ]);
 
   if (!horse) notFound();
@@ -172,6 +178,64 @@ export default async function PortalHorseDetailPage({
           </div>
         )}
       </section>
+
+      {injuryReports && injuryReports.length > 0 && (
+        <section className="mt-10">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">
+            Injuries
+          </h2>
+          <div className="mt-3 flex flex-col gap-4">
+            {injuryReports.map((report) => (
+              <div
+                key={report.id}
+                className={`rounded-xl border p-4 ${
+                  report.status === "resolved"
+                    ? "border-black/10 bg-white/40 opacity-70"
+                    : "border-red-300 bg-red-50"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <p className="font-semibold text-brand-dark">
+                    {report.title}
+                  </p>
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-medium capitalize text-brand-dark">
+                    {report.status}
+                  </span>
+                </div>
+                {report.injury_report_notes?.length > 0 && (
+                  <div className="mt-3 flex flex-col gap-2">
+                    {report.injury_report_notes.map(
+                      (note: {
+                        id: string;
+                        body: string | null;
+                        photo_url: string | null;
+                        created_at: string;
+                      }) => (
+                        <div key={note.id} className="text-sm">
+                          <span className="text-xs text-foreground/50">
+                            {new Date(note.created_at).toLocaleString()}
+                          </span>
+                          {note.body && (
+                            <p className="text-foreground/80">{note.body}</p>
+                          )}
+                          {note.photo_url && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={note.photo_url}
+                              alt=""
+                              className="mt-1 h-24 w-24 rounded-lg object-cover"
+                            />
+                          )}
+                        </div>
+                      ),
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="mt-10">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">

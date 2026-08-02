@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { updateHorse, postHorseUpdate } from "@/lib/actions/horses";
+import { createInjuryReport, addInjuryNote } from "@/lib/actions/injuries";
 import { notFound } from "next/navigation";
 
 export default async function AdminHorseDetailPage({
@@ -10,7 +11,7 @@ export default async function AdminHorseDetailPage({
   const { horseId } = await params;
   const supabase = await createClient();
 
-  const [{ data: horse }, { data: owners }, { data: updates }, { data: paddocks }] =
+  const [{ data: horse }, { data: owners }, { data: updates }, { data: paddocks }, { data: injuryReports }] =
     await Promise.all([
       supabase.from("horses").select("*").eq("id", horseId).single(),
       supabase
@@ -28,6 +29,12 @@ export default async function AdminHorseDetailPage({
         .select("id, name")
         .order("row_position")
         .order("col_position"),
+      supabase
+        .from("injury_reports")
+        .select("*, injury_report_notes(*)")
+        .eq("horse_id", horseId)
+        .order("created_at", { ascending: false })
+        .order("created_at", { ascending: true, foreignTable: "injury_report_notes" }),
     ]);
 
   if (!horse) notFound();
@@ -35,6 +42,7 @@ export default async function AdminHorseDetailPage({
   const currentOwner = owners?.find((o) => o.id === horse.owner_id);
   const updateHorseWithId = updateHorse.bind(null, horseId);
   const postUpdateWithId = postHorseUpdate.bind(null, horseId);
+  const createInjuryReportWithId = createInjuryReport.bind(null, horseId);
 
   return (
     <div>
@@ -252,6 +260,138 @@ export default async function AdminHorseDetailPage({
             Save Changes
           </button>
         </form>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">
+          Injuries
+        </h2>
+
+        <form
+          action={createInjuryReportWithId}
+          className="mt-3 flex max-w-lg flex-col gap-3 rounded-xl border border-black/10 bg-white/60 p-4"
+        >
+          <p className="text-sm font-medium text-brand-dark">
+            Report a New Injury
+          </p>
+          <input
+            name="title"
+            required
+            placeholder="e.g. Cut on left hind leg"
+            className="rounded-lg border border-black/15 px-4 py-2 text-sm outline-none focus:border-brand"
+          />
+          <textarea
+            name="body"
+            rows={2}
+            placeholder="Details (optional)"
+            className="rounded-lg border border-black/15 px-4 py-2 text-sm outline-none focus:border-brand"
+          />
+          <input type="file" name="photo" accept="image/*" className="text-sm" />
+          <button
+            type="submit"
+            className="w-fit rounded-full bg-brand px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
+          >
+            Report Injury
+          </button>
+        </form>
+
+        {injuryReports && injuryReports.length > 0 && (
+          <div className="mt-4 flex flex-col gap-4">
+            {injuryReports.map((report) => {
+              const addNoteWithId = addInjuryNote.bind(
+                null,
+                report.id,
+                horseId,
+              );
+              return (
+                <div
+                  key={report.id}
+                  className={`rounded-xl border p-4 ${
+                    report.status === "resolved"
+                      ? "border-black/10 bg-white/40 opacity-70"
+                      : "border-red-300 bg-red-50"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold text-brand-dark">
+                      {report.title}
+                    </p>
+                    <span className="rounded-full bg-white px-3 py-1 text-xs font-medium capitalize text-brand-dark">
+                      {report.status}
+                    </span>
+                  </div>
+
+                  {report.injury_report_notes?.length > 0 && (
+                    <div className="mt-3 flex flex-col gap-2">
+                      {report.injury_report_notes.map(
+                        (note: {
+                          id: string;
+                          body: string | null;
+                          photo_url: string | null;
+                          created_at: string;
+                        }) => (
+                          <div key={note.id} className="text-sm">
+                            <span className="text-xs text-foreground/50">
+                              {new Date(note.created_at).toLocaleString()}
+                            </span>
+                            {note.body && (
+                              <p className="text-foreground/80">
+                                {note.body}
+                              </p>
+                            )}
+                            {note.photo_url && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={note.photo_url}
+                                alt=""
+                                className="mt-1 h-24 w-24 rounded-lg object-cover"
+                              />
+                            )}
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  )}
+
+                  {report.status !== "resolved" && (
+                    <form
+                      action={addNoteWithId}
+                      className="mt-3 flex flex-col gap-2 border-t border-black/10 pt-3"
+                    >
+                      <textarea
+                        name="body"
+                        rows={2}
+                        placeholder="Add a progress note..."
+                        className="rounded-lg border border-black/15 px-3 py-2 text-sm outline-none focus:border-brand"
+                      />
+                      <input
+                        type="file"
+                        name="photo"
+                        accept="image/*"
+                        className="text-sm"
+                      />
+                      <select
+                        name="status"
+                        defaultValue={report.status}
+                        className="rounded-lg border border-black/15 px-3 py-2 text-sm outline-none focus:border-brand"
+                      >
+                        <option value="open">Open</option>
+                        <option value="healing">Healing</option>
+                        <option value="resolved">Resolved</option>
+                      </select>
+                      <button
+                        type="submit"
+                        className="w-fit rounded-full bg-brand px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
+                      >
+                        Add Note
+                      </button>
+                    </form>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       <section className="mt-10">
