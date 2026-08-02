@@ -3,11 +3,18 @@ import { createHorse } from "@/lib/actions/horses";
 
 export default async function NewHorsePage() {
   const supabase = await createClient();
-  const { data: owners } = await supabase
-    .from("profiles")
-    .select("id, full_name, email")
-    .eq("role", "owner")
-    .order("email");
+  const [{ data: owners }, { data: paddocks }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, full_name, email")
+      .eq("role", "owner")
+      .order("email"),
+    supabase
+      .from("paddocks")
+      .select("id, name")
+      .order("row_position")
+      .order("col_position"),
+  ]);
 
   return (
     <div>
@@ -78,9 +85,24 @@ export default async function NewHorsePage() {
           Status
           <input
             name="status"
-            placeholder="e.g. Healthy, In paddock 3"
+            placeholder="e.g. Healthy"
             className="rounded-lg border border-black/15 px-4 py-2.5 text-sm outline-none focus:border-brand"
           />
+        </label>
+
+        <label className="flex flex-col gap-1 text-sm font-medium text-brand-dark">
+          Paddock
+          <select
+            name="paddock_id"
+            className="rounded-lg border border-black/15 px-4 py-2.5 text-sm outline-none focus:border-brand"
+          >
+            <option value="">Not assigned</option>
+            {paddocks?.map((paddock) => (
+              <option key={paddock.id} value={paddock.id}>
+                {paddock.name}
+              </option>
+            ))}
+          </select>
         </label>
 
         <label className="flex flex-col gap-1 text-sm font-medium text-brand-dark">

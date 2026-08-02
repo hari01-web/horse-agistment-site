@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
+import PaddockMap from "@/components/shared/PaddockMap";
 
 export default async function PortalHorseDetailPage({
   params,
@@ -9,16 +10,33 @@ export default async function PortalHorseDetailPage({
   const { horseId } = await params;
   const supabase = await createClient();
 
-  const [{ data: horse }, { data: updates }] = await Promise.all([
-    supabase.from("horses").select("*").eq("id", horseId).single(),
-    supabase
-      .from("horse_updates")
-      .select("*")
-      .eq("horse_id", horseId)
-      .order("created_at", { ascending: false }),
-  ]);
+  const [{ data: horse }, { data: updates }, { data: paddocks }] =
+    await Promise.all([
+      supabase.from("horses").select("*").eq("id", horseId).single(),
+      supabase
+        .from("horse_updates")
+        .select("*")
+        .eq("horse_id", horseId)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("paddocks")
+        .select("*")
+        .order("row_position")
+        .order("col_position"),
+    ]);
 
   if (!horse) notFound();
+
+  const paddockLogs = horse.paddock_id
+    ? (
+        await supabase
+          .from("paddock_logs")
+          .select("*")
+          .eq("paddock_id", horse.paddock_id)
+          .order("performed_at", { ascending: false })
+          .limit(5)
+      ).data
+    : null;
 
   const age = horse.birth_year
     ? new Date().getFullYear() - horse.birth_year
@@ -55,6 +73,41 @@ export default async function PortalHorseDetailPage({
         <p className="mt-6 max-w-xl text-sm leading-6 text-foreground/80">
           {horse.notes}
         </p>
+      )}
+
+      {paddocks && paddocks.length > 0 && (
+        <section className="mt-8">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">
+            Paddock
+          </h2>
+          {horse.paddock_id ? (
+            <>
+              <div className="mt-3">
+                <PaddockMap paddocks={paddocks} highlightId={horse.paddock_id} />
+              </div>
+              {paddockLogs && paddockLogs.length > 0 && (
+                <div className="mt-3 flex flex-col gap-2">
+                  {paddockLogs.map((log) => (
+                    <div
+                      key={log.id}
+                      className="rounded-lg border border-black/10 bg-white/60 px-4 py-2 text-sm"
+                    >
+                      <span className="font-semibold text-brand-dark capitalize">
+                        {log.type}
+                      </span>{" "}
+                      — {log.performed_at}
+                      {log.notes ? ` — ${log.notes}` : ""}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="mt-2 text-foreground/70">
+              Not currently assigned to a paddock.
+            </p>
+          )}
+        </section>
       )}
 
       <section className="mt-8 grid max-w-xl gap-6 sm:grid-cols-2">

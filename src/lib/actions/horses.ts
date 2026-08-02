@@ -32,6 +32,7 @@ function horseFieldsFromFormData(formData: FormData) {
     breed: formData.get("breed") || null,
     birth_year: birthYearRaw ? Number(birthYearRaw) : null,
     status: formData.get("status") || null,
+    paddock_id: formData.get("paddock_id") || null,
     notes: formData.get("notes") || null,
     vet_name: formData.get("vet_name") || null,
     vet_phone: formData.get("vet_phone") || null,

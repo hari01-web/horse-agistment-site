@@ -35,6 +35,12 @@ export default function AdminHome() {
           Change Requests
         </Link>
         <Link
+          href="/admin/paddocks"
+          className="inline-block rounded-full border border-brand-dark/30 px-6 py-2.5 text-sm font-semibold text-brand-dark transition-colors hover:bg-brand-cream"
+        >
+          Paddocks
+        </Link>
+        <Link
           href="/admin/contact"
           className="inline-block rounded-full border border-brand-dark/30 px-6 py-2.5 text-sm font-semibold text-brand-dark transition-colors hover:bg-brand-cream"
         >

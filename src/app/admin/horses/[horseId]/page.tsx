@@ -10,7 +10,7 @@ export default async function AdminHorseDetailPage({
   const { horseId } = await params;
   const supabase = await createClient();
 
-  const [{ data: horse }, { data: owners }, { data: updates }] =
+  const [{ data: horse }, { data: owners }, { data: updates }, { data: paddocks }] =
     await Promise.all([
       supabase.from("horses").select("*").eq("id", horseId).single(),
       supabase
@@ -23,6 +23,11 @@ export default async function AdminHorseDetailPage({
         .select("*")
         .eq("horse_id", horseId)
         .order("created_at", { ascending: false }),
+      supabase
+        .from("paddocks")
+        .select("id, name")
+        .order("row_position")
+        .order("col_position"),
     ]);
 
   if (!horse) notFound();
@@ -116,6 +121,22 @@ export default async function AdminHorseDetailPage({
               defaultValue={horse.notes ?? ""}
               className="rounded-lg border border-black/15 px-4 py-2.5 text-sm outline-none focus:border-brand"
             />
+          </label>
+
+          <label className="flex flex-col gap-1 text-sm font-medium text-brand-dark">
+            Paddock
+            <select
+              name="paddock_id"
+              defaultValue={horse.paddock_id ?? ""}
+              className="rounded-lg border border-black/15 px-4 py-2.5 text-sm outline-none focus:border-brand"
+            >
+              <option value="">Not assigned</option>
+              {paddocks?.map((paddock) => (
+                <option key={paddock.id} value={paddock.id}>
+                  {paddock.name}
+                </option>
+              ))}
+            </select>
           </label>
 
           <label className="flex flex-col gap-1 text-sm font-medium text-brand-dark">
