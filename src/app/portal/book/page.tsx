@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { bookSlot } from "@/lib/actions/bookings";
+import { UTC_OFFSET, nextDay, todayLocal } from "@/lib/time";
 
 function toMinutes(t: string) {
   const [h, m] = t.split(":").map(Number);
@@ -16,9 +17,13 @@ export default async function BookPage({
   searchParams: Promise<{ date?: string; error?: string }>;
 }) {
   const { date: dateParam, error } = await searchParams;
-  const date = dateParam || new Date().toISOString().slice(0, 10);
+  const date =
+    dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : todayLocal();
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const [
     { data: settings },
     { data: blackout },
@@ -31,11 +36,12 @@ export default async function BookPage({
       .from("bookings")
       .select("slot_start")
       .eq("status", "confirmed")
-      .gte("slot_start", `${date}T00:00:00.000Z`)
-      .lt("slot_start", `${date}T23:59:59.999Z`),
-    supabase.from("horses").select("id, name"),
+      .gte("slot_start", `${date}T00:00:00${UTC_OFFSET}`)
+      .lt("slot_start", `${nextDay(date)}T00:00:00${UTC_OFFSET}`),
+    supabase.from("horses").select("id, name").eq("owner_id", user?.id ?? ""),
   ]);
 
+  // Day of week of the calendar date itself (not affected by time zones).
   const dayOfWeek = new Date(`${date}T00:00:00.000Z`).getUTCDay();
   const isOpenDay = settings?.days_open?.includes(dayOfWeek);
   const isBlackedOut = !!blackout;
@@ -58,7 +64,9 @@ export default async function BookPage({
     ) {
       const hh = pad(Math.floor(m / 60));
       const mm = pad(m % 60);
-      const iso = new Date(`${date}T${hh}:${mm}:00.000Z`).toISOString();
+      const start = new Date(`${date}T${hh}:${mm}:00${UTC_OFFSET}`);
+      if (start < new Date()) continue;
+      const iso = start.toISOString();
       const count = bookedCounts[iso] || 0;
       slots.push({
         time: `${hh}:${mm}`,
@@ -105,6 +113,10 @@ export default async function BookPage({
       ) : !isOpenDay ? (
         <p className="mt-6 text-foreground/70">
           We&apos;re closed for riding bookings on this day.
+        </p>
+      ) : slots.length === 0 ? (
+        <p className="mt-6 text-foreground/70">
+          There are no times left to book on this day.
         </p>
       ) : (
         <form action={bookSlot} className="mt-6 flex flex-col gap-4">

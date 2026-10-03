@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { todayLocal } from "@/lib/time";
 
 export async function addPaddockLog(paddockId: string, formData: FormData) {
   const supabase = await createClient();
@@ -15,7 +16,7 @@ export async function addPaddockLog(paddockId: string, formData: FormData) {
     author_id: user.id,
     type: formData.get("type"),
     notes: formData.get("notes") || null,
-    performed_at: formData.get("performed_at") || new Date().toISOString().slice(0, 10),
+    performed_at: formData.get("performed_at") || todayLocal(),
   });
 
   if (error) throw new Error(error.message);

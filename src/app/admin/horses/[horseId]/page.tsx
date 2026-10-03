@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { formatDateTime } from "@/lib/time";
 import { updateHorse, postHorseUpdate } from "@/lib/actions/horses";
 import { createInjuryReport, addInjuryNote } from "@/lib/actions/injuries";
 import { notFound } from "next/navigation";
@@ -332,7 +333,7 @@ export default async function AdminHorseDetailPage({
                         }) => (
                           <div key={note.id} className="text-sm">
                             <span className="text-xs text-foreground/50">
-                              {new Date(note.created_at).toLocaleString()}
+                              {formatDateTime(note.created_at)}
                             </span>
                             {note.body && (
                               <p className="text-foreground/80">
@@ -459,7 +460,7 @@ export default async function AdminHorseDetailPage({
                     {update.type}
                   </span>
                   <span className="text-xs text-foreground/50">
-                    {new Date(update.created_at).toLocaleString()}
+                    {formatDateTime(update.created_at)}
                   </span>
                 </div>
                 {update.body && (

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { formatDateTime } from "@/lib/time";
 import { notFound } from "next/navigation";
 import PaddockMap from "@/components/shared/PaddockMap";
 
@@ -213,7 +214,7 @@ export default async function PortalHorseDetailPage({
                       }) => (
                         <div key={note.id} className="text-sm">
                           <span className="text-xs text-foreground/50">
-                            {new Date(note.created_at).toLocaleString()}
+                            {formatDateTime(note.created_at)}
                           </span>
                           {note.body && (
                             <p className="text-foreground/80">{note.body}</p>
@@ -255,7 +256,7 @@ export default async function PortalHorseDetailPage({
                     {update.type}
                   </span>
                   <span className="text-xs text-foreground/50">
-                    {new Date(update.created_at).toLocaleString()}
+                    {formatDateTime(update.created_at)}
                   </span>
                 </div>
                 {update.body && (

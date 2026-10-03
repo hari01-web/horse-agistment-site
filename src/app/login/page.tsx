@@ -5,9 +5,9 @@ import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
-    "idle",
-  );
+  const [status, setStatus] = useState<
+    "idle" | "sending" | "sent" | "not-found" | "error"
+  >("idle");
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -16,10 +16,15 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
+        // Accounts are invite-only: owners are added by admin in Supabase.
+        shouldCreateUser: false,
         emailRedirectTo: `${window.location.origin}/auth/callback?next=/portal`,
       },
     });
-    setStatus(error ? "error" : "sent");
+    if (!error) setStatus("sent");
+    else if (error.code === "otp_disabled" || /signups? not allowed/i.test(error.message))
+      setStatus("not-found");
+    else setStatus("error");
   }
 
   return (
@@ -53,6 +58,12 @@ export default function LoginPage() {
           >
             {status === "sending" ? "Sending..." : "Send Login Link"}
           </button>
+          {status === "not-found" && (
+            <p className="text-sm text-red-600">
+              We couldn&apos;t find an account for that email. Owner accounts
+              are set up by Strathyre Park — please get in touch.
+            </p>
+          )}
           {status === "error" && (
             <p className="text-sm text-red-600">
               Something went wrong. Please try again.

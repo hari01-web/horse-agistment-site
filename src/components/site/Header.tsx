@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import MobileNav from "./MobileNav";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -12,18 +13,19 @@ const NAV_LINKS = [
 export default function Header() {
   return (
     <header className="border-b border-black/10 bg-background/95 backdrop-blur sticky top-0 z-50">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+      <div className="relative mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
         <Link href="/" className="flex items-center">
           <Image
             src="/logo-navy-on-white.jpg"
             alt="Strathyre Park"
             width={160}
             height={200}
-            className="h-14 w-auto"
+            className="h-12 w-auto md:h-14"
             priority
           />
         </Link>
-        <nav className="flex gap-6 text-sm font-medium">
+        <MobileNav links={NAV_LINKS} />
+        <nav className="hidden gap-6 text-sm font-medium md:flex">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
@@ -36,7 +38,7 @@ export default function Header() {
         </nav>
         <Link
           href="/login"
-          className="rounded-full border border-brand-dark/30 px-4 py-1.5 text-sm font-medium text-brand-dark transition-colors hover:bg-brand-cream"
+          className="hidden rounded-full border border-brand-dark/30 px-4 py-1.5 text-sm font-medium text-brand-dark transition-colors hover:bg-brand-cream md:block"
         >
           Owner Login
         </Link>

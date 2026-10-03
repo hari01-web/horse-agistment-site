@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { formatDateTime } from "@/lib/time";
 import { sendMessage } from "@/lib/actions/messages";
 import { notFound } from "next/navigation";
 
@@ -62,7 +63,7 @@ export default async function AdminConversationPage({
                     isMine ? "text-white/70" : "text-foreground/50"
                   }`}
                 >
-                  {new Date(message.created_at).toLocaleString()}
+                  {formatDateTime(message.created_at)}
                 </p>
               </div>
             );

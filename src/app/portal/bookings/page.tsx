@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { cancelBooking } from "@/lib/actions/bookings";
+import { formatDateTime } from "@/lib/time";
 import Link from "next/link";
 
 export default async function PortalBookingsPage() {
@@ -38,10 +39,7 @@ export default async function PortalBookingsPage() {
             >
               <div>
                 <p className="font-semibold text-brand-dark">
-                  {new Date(booking.slot_start).toLocaleString(undefined, {
-                    dateStyle: "medium",
-                    timeStyle: "short",
-                  })}
+                  {formatDateTime(booking.slot_start)}
                 </p>
                 <p className="text-sm text-foreground/60">
                   {/* @ts-expect-error -- joined relation shape */}

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { formatDateTime } from "@/lib/time";
 import { markCareRequestHandled } from "@/lib/actions/care-requests";
 
 export default async function AdminRequestsPage() {
@@ -36,7 +37,7 @@ export default async function AdminRequestsPage() {
                   {request.horses?.name ? ` · ${request.horses.name}` : ""}
                 </span>
                 <span className="text-xs text-foreground/50">
-                  {new Date(request.created_at).toLocaleString()}
+                  {formatDateTime(request.created_at)}
                 </span>
               </div>
               <p className="mt-1 text-sm font-medium text-brand-dark">

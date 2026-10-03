@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { formatDateTime } from "@/lib/time";
 import CareRequestForm from "@/components/portal/CareRequestForm";
 
 export default async function PortalRequestsPage() {
@@ -82,7 +83,7 @@ export default async function PortalRequestsPage() {
                     {request.horses?.name ? ` · ${request.horses.name}` : ""}
                   </span>
                   <span className="text-xs text-foreground/50">
-                    {new Date(request.created_at).toLocaleString()}
+                    {formatDateTime(request.created_at)}
                   </span>
                 </div>
                 <p className="mt-2 text-sm leading-6 text-foreground/80">

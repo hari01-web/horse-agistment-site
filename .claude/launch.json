@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "next-dev",
-      "runtimeExecutable": "C:\\Users\\tharr\\OneDrive\\Documents\\Website\\dev.cmd",
+      "runtimeExecutable": "C:\\Users\\tharr\\Projects\\Website\\dev.cmd",
       "runtimeArgs": [],
       "port": 3000
     }

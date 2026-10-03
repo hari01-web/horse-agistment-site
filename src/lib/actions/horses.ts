@@ -74,10 +74,11 @@ async function updateOwnerPhoneIfProvided(
   const ownerPhone = formData.get("owner_phone");
   const ownerId = formData.get("owner_id");
   if (ownerPhone && ownerId) {
-    await supabase
+    const { error } = await supabase
       .from("profiles")
       .update({ phone: ownerPhone })
       .eq("id", ownerId);
+    if (error) throw new Error(error.message);
   }
 }
 

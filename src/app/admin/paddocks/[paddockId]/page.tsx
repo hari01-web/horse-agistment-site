@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { addPaddockLog, updatePaddock } from "@/lib/actions/paddocks";
 import { notFound } from "next/navigation";
+import { todayLocal } from "@/lib/time";
 import Link from "next/link";
 
 export default async function AdminPaddockDetailPage({
@@ -103,7 +104,7 @@ export default async function AdminPaddockDetailPage({
           <input
             type="date"
             name="performed_at"
-            defaultValue={new Date().toISOString().slice(0, 10)}
+            defaultValue={todayLocal()}
             className="rounded-lg border border-black/15 px-4 py-2 text-sm outline-none focus:border-brand"
           />
           <textarea

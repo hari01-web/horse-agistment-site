@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { formatDateTime } from "@/lib/time";
 import { markContactSubmissionHandled } from "@/lib/actions/contact-admin";
 
 export default async function AdminContactPage() {
@@ -38,7 +39,7 @@ export default async function AdminContactPage() {
                   </p>
                 </div>
                 <p className="whitespace-nowrap text-xs text-foreground/50">
-                  {new Date(submission.created_at).toLocaleString()}
+                  {formatDateTime(submission.created_at)}
                 </p>
               </div>
               <p className="mt-3 text-sm leading-6 text-foreground/80">
