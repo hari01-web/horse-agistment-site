@@ -28,9 +28,50 @@ export async function submitCareRequest(formData: FormData) {
   revalidatePath("/portal/requests");
 }
 
-export async function markCareRequestHandled(id: string, handled: boolean) {
+// Mark a request handled, charging the owner the amount entered (blank or
+// 0 = no charge).
+export async function handleCareRequest(id: string, formData: FormData) {
   const supabase = await createClient();
-  await supabase.from("care_requests").update({ handled }).eq("id", id);
+  const amount = Number(formData.get("amount"));
+
+  const { data: request, error } = await supabase
+    .from("care_requests")
+    .update({ handled: true })
+    .eq("id", id)
+    .select("owner_id, horse_id, type, body")
+    .single();
+  if (error) throw new Error(error.message);
+
+  if (amount > 0) {
+    const { data: price } = await supabase
+      .from("extra_prices")
+      .select("label")
+      .eq("type", request.type)
+      .single();
+    const { error: chargeError } = await supabase.from("charges").upsert(
+      {
+        owner_id: request.owner_id,
+        horse_id: request.horse_id,
+        care_request_id: id,
+        description: `${price?.label ?? "Extra"}: ${request.body}`.slice(0, 300),
+        amount: Math.round(amount * 100) / 100,
+      },
+      { onConflict: "care_request_id" },
+    );
+    if (chargeError) throw new Error(chargeError.message);
+  }
 
   revalidatePath("/admin/requests");
+  revalidatePath("/admin/billing");
+  revalidatePath("/admin");
+}
+
+// Re-open a request; any charge made for it is removed.
+export async function reopenCareRequest(id: string) {
+  const supabase = await createClient();
+  await supabase.from("charges").delete().eq("care_request_id", id);
+  await supabase.from("care_requests").update({ handled: false }).eq("id", id);
+
+  revalidatePath("/admin/requests");
+  revalidatePath("/admin/billing");
 }

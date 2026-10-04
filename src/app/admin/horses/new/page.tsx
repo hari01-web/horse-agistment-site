@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createHorse } from "@/lib/actions/horses";
 import FeedPlanFields from "@/components/shared/FeedPlanFields";
+import PhotoInput from "@/components/shared/PhotoInput";
 
 export default async function NewHorsePage() {
   const supabase = await createClient();
@@ -117,12 +118,7 @@ export default async function NewHorsePage() {
 
         <label className="flex flex-col gap-1 text-sm font-medium text-brand-dark">
           Photo
-          <input
-            type="file"
-            name="photo"
-            accept="image/*"
-            className="text-sm"
-          />
+          <PhotoInput />
         </label>
 
         <h2 className="mt-4 text-sm font-semibold uppercase tracking-wide text-brand">

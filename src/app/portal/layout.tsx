@@ -34,6 +34,7 @@ export default async function PortalLayout({
     { href: "/portal/bookings", label: "My Bookings" },
     { href: "/portal/messages", label: "Messages", badge: unread.total },
     { href: "/portal/requests", label: "Request a Change" },
+    { href: "/portal/statements", label: "Statements" },
     { href: "/portal/account", label: "My Details" },
   ];
 

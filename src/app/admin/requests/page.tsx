@@ -1,15 +1,22 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatDateTime } from "@/lib/time";
-import { markCareRequestHandled } from "@/lib/actions/care-requests";
+import { handleCareRequest, reopenCareRequest } from "@/lib/actions/care-requests";
+import { formatMoney } from "@/lib/money";
 
 export default async function AdminRequestsPage() {
   const supabase = await createClient();
-  const { data: requests } = await supabase
-    .from("care_requests")
-    .select(
-      "id, type, body, handled, created_at, horses(name), profiles(full_name, email)",
-    )
-    .order("created_at", { ascending: false });
+  const [{ data: requests }, { data: prices }, { data: charges }] = await Promise.all([
+    supabase
+      .from("care_requests")
+      .select(
+        "id, type, body, handled, created_at, horses(name), profiles(full_name, email)",
+      )
+      .order("created_at", { ascending: false }),
+    supabase.from("extra_prices").select("type, price"),
+    supabase.from("charges").select("care_request_id, amount").not("care_request_id", "is", null),
+  ]);
+  const priceFor = (type: string) => prices?.find((p) => p.type === type)?.price;
+  const chargeFor = (id: string) => charges?.find((c) => c.care_request_id === id)?.amount;
 
   return (
     <div>
@@ -47,20 +54,55 @@ export default async function AdminRequestsPage() {
               <p className="mt-2 text-sm leading-6 text-foreground/80">
                 {request.body}
               </p>
-              <form
-                action={async () => {
-                  "use server";
-                  await markCareRequestHandled(request.id, !request.handled);
-                }}
-                className="mt-3"
-              >
-                <button
-                  type="submit"
-                  className="cursor-pointer text-sm font-medium text-brand-dark underline hover:text-brand"
+              {request.handled ? (
+                <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
+                  <span className="text-foreground/60">
+                    {chargeFor(request.id) != null
+                      ? `Charged ${formatMoney(chargeFor(request.id))}`
+                      : "No charge"}
+                  </span>
+                  <form
+                    action={async () => {
+                      "use server";
+                      await reopenCareRequest(request.id);
+                    }}
+                  >
+                    <button
+                      type="submit"
+                      className="cursor-pointer font-medium text-brand-dark underline hover:text-brand"
+                    >
+                      Re-open
+                    </button>
+                  </form>
+                </div>
+              ) : (
+                <form
+                  action={handleCareRequest.bind(null, request.id)}
+                  className="mt-3 flex flex-wrap items-center gap-2 text-sm"
                 >
-                  {request.handled ? "Mark as unhandled" : "Mark as handled"}
-                </button>
-              </form>
+                  <label className="flex items-center gap-1 text-brand-dark">
+                    Charge $
+                    <input
+                      type="number"
+                      name="amount"
+                      min={0}
+                      step="0.01"
+                      defaultValue={priceFor(request.type) ?? ""}
+                      placeholder="0.00"
+                      className="w-24 rounded-lg border border-black/15 px-2 py-1 outline-none focus:border-brand"
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    className="cursor-pointer rounded-full bg-brand px-4 py-1.5 font-semibold text-white hover:bg-brand-dark"
+                  >
+                    Mark handled
+                  </button>
+                  <span className="text-xs text-foreground/50">
+                    Leave blank or 0 for no charge
+                  </span>
+                </form>
+              )}
             </div>
           ))}
         </div>

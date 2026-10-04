@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatDateTime } from "@/lib/time";
 import CareRequestForm from "@/components/portal/CareRequestForm";
+import { formatMoney } from "@/lib/money";
 
 export default async function PortalRequestsPage() {
   const supabase = await createClient();
@@ -8,13 +9,18 @@ export default async function PortalRequestsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [{ data: horses }, { data: requests }] = await Promise.all([
+  const [{ data: horses }, { data: requests }, { data: prices }] = await Promise.all([
     supabase.from("horses").select("id, name").eq("owner_id", user!.id),
     supabase
       .from("care_requests")
       .select("id, type, body, handled, created_at, horses(name)")
       .order("created_at", { ascending: false }),
+    supabase.from("extra_prices").select("type, price"),
   ]);
+  const cost = (type: string, fallback: string) => {
+    const price = prices?.find((p) => p.type === type)?.price;
+    return price != null ? `${formatMoney(price)} per change` : fallback;
+  };
 
   return (
     <div>
@@ -25,8 +31,8 @@ export default async function PortalRequestsPage() {
         Your weekly agistment rate covers your horse&apos;s regular plan.
         Last-minute changes — a different feed, putting a rug on or off, or
         anything else outside the normal routine — are billed as an{" "}
-        <strong>extra charge on top of your weekly rate</strong> (amounts
-        TBC). Use the sections below to let us know what&apos;s needed.
+        <strong>extra charge on top of your weekly rate</strong> (see the
+        price on each option below). Use the sections below to let us know what&apos;s needed.
       </p>
 
       {!horses || horses.length === 0 ? (
@@ -38,21 +44,21 @@ export default async function PortalRequestsPage() {
           <CareRequestForm
             type="feed"
             label="Feed"
-            extraCost="TBC per change"
+            extraCost={cost("feed", "TBC per change")}
             placeholder="e.g. extra biscuit of hay tonight"
             horses={horses}
           />
           <CareRequestForm
             type="rug"
             label="Rug"
-            extraCost="TBC per change"
+            extraCost={cost("rug", "TBC per change")}
             placeholder="e.g. put the heavy rug on tonight"
             horses={horses}
           />
           <CareRequestForm
             type="other"
             label="Other"
-            extraCost="TBC — holding for farrier/vet/dental also billed as an extra"
+            extraCost={cost("other", "TBC — holding for farrier/vet/dental also billed as an extra")}
             placeholder="e.g. hold for farrier visit Thursday"
             horses={horses}
           />

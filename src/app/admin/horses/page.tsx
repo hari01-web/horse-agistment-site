@@ -1,8 +1,13 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { currentRole } from "@/lib/roles";
 
 export default async function AdminHorsesPage() {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isAdmin = (await currentRole(supabase, user?.id)) === "admin";
   const { data: horses } = await supabase
     .from("horses")
     .select("id, name, breed, status, profiles(full_name, email)")
@@ -12,12 +17,14 @@ export default async function AdminHorsesPage() {
     <div>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-brand-dark">Horses</h1>
-        <Link
-          href="/admin/horses/new"
-          className="rounded-full bg-brand px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
-        >
-          Add Horse
-        </Link>
+        {isAdmin && (
+          <Link
+            href="/admin/horses/new"
+            className="rounded-full bg-brand px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
+          >
+            Add Horse
+          </Link>
+        )}
       </div>
 
       {!horses || horses.length === 0 ? (
@@ -33,9 +40,14 @@ export default async function AdminHorsesPage() {
               <div>
                 <p className="font-semibold text-brand-dark">{horse.name}</p>
                 <p className="text-sm text-foreground/60">
-                  {horse.breed || "Breed not set"} · Owner:{" "}
-                  {/* @ts-expect-error -- joined relation shape */}
-                  {horse.profiles?.full_name || horse.profiles?.email || "Unknown"}
+                  {horse.breed || "Breed not set"}
+                  {isAdmin && (
+                    <>
+                      {" "}· Owner:{" "}
+                      {/* @ts-expect-error -- joined relation shape */}
+                      {horse.profiles?.full_name || horse.profiles?.email || "Unknown"}
+                    </>
+                  )}
                 </p>
               </div>
               {horse.status && (

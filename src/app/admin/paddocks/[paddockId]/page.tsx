@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { addPaddockLog, updatePaddock } from "@/lib/actions/paddocks";
 import { notFound } from "next/navigation";
+import { currentRole } from "@/lib/roles";
 import { todayLocal } from "@/lib/time";
 import Link from "next/link";
 
@@ -11,6 +12,10 @@ export default async function AdminPaddockDetailPage({
 }) {
   const { paddockId } = await params;
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isAdmin = (await currentRole(supabase, user?.id)) === "admin";
 
   const [{ data: paddock }, { data: logs }, { data: horses }] =
     await Promise.all([
@@ -54,39 +59,41 @@ export default async function AdminPaddockDetailPage({
         )}
       </section>
 
-      <section className="mt-8 max-w-md">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">
-          Paddock Details
-        </h2>
-        <form
-          action={updatePaddockWithId}
-          className="mt-3 flex flex-col gap-3"
-        >
-          <label className="flex items-center gap-2 text-sm font-medium text-brand-dark">
-            <input
-              type="checkbox"
-              name="has_shelter"
-              defaultChecked={paddock.has_shelter}
-            />
-            Has shelter
-          </label>
-          <label className="flex flex-col gap-1 text-sm font-medium text-brand-dark">
-            Notes
-            <textarea
-              name="notes"
-              rows={3}
-              defaultValue={paddock.notes ?? ""}
-              className="rounded-lg border border-black/15 px-4 py-2 text-sm outline-none focus:border-brand"
-            />
-          </label>
-          <button
-            type="submit"
-            className="w-fit rounded-full bg-brand px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
+      {isAdmin && (
+        <section className="mt-8 max-w-md">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">
+            Paddock Details
+          </h2>
+          <form
+            action={updatePaddockWithId}
+            className="mt-3 flex flex-col gap-3"
           >
-            Save
-          </button>
-        </form>
-      </section>
+            <label className="flex items-center gap-2 text-sm font-medium text-brand-dark">
+              <input
+                type="checkbox"
+                name="has_shelter"
+                defaultChecked={paddock.has_shelter}
+              />
+              Has shelter
+            </label>
+            <label className="flex flex-col gap-1 text-sm font-medium text-brand-dark">
+              Notes
+              <textarea
+                name="notes"
+                rows={3}
+                defaultValue={paddock.notes ?? ""}
+                className="rounded-lg border border-black/15 px-4 py-2 text-sm outline-none focus:border-brand"
+              />
+            </label>
+            <button
+              type="submit"
+              className="w-fit rounded-full bg-brand px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
+            >
+              Save
+            </button>
+          </form>
+        </section>
+      )}
 
       <section className="mt-8 max-w-md">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">

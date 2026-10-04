@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { currentRole, staffCanOpen } from "@/lib/roles";
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -41,15 +42,19 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && isAdmin) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    const role = await currentRole(supabase, user.id);
+    // Owners go to their portal; staff only to day-to-day care pages.
+    const redirectTo =
+      role === "owner"
+        ? "/portal"
+        : role === "staff" && !staffCanOpen(path)
+          ? "/admin"
+          : null;
 
-    if (profile?.role !== "admin") {
+    if (redirectTo) {
       const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = "/portal";
+      redirectUrl.pathname = redirectTo;
+      redirectUrl.search = "";
       return NextResponse.redirect(redirectUrl);
     }
   }

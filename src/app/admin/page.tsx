@@ -6,6 +6,7 @@ import StatCard from "@/components/shared/StatCard";
 import FeedingList from "@/components/shared/FeedingList";
 import { DashboardSection, Row } from "@/components/shared/Dashboard";
 import { CARE_PILL } from "@/components/shared/CareSchedule";
+import { currentRole } from "@/lib/roles";
 import {
   CARE_DATE_COLUMNS,
   careItems,
@@ -19,6 +20,10 @@ const personName = (p: Named) => p?.full_name || p?.email || "Unknown";
 
 export default async function AdminHome() {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isAdmin = (await currentRole(supabase, user?.id)) === "admin";
   const now = new Date();
   const weekAhead = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
@@ -93,51 +98,61 @@ export default async function AdminHome() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-brand-dark">Admin Home</h1>
+      <h1 className="text-2xl font-semibold text-brand-dark">
+        {isAdmin ? "Admin Home" : "Staff Home"}
+      </h1>
       <p className="mt-1 text-sm text-foreground/60">{formatLongDate(now)}</p>
 
       <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <StatCard
+        {isAdmin && (
+          <StatCard
           href="/admin/messages"
           count={unread.total}
           label="Unread messages"
           emptyLabel="No unread messages"
         />
-        <StatCard
+        )}
+        {isAdmin && (
+          <StatCard
           href="/admin/requests"
           count={requestCount ?? 0}
           label="Pending change requests"
           emptyLabel="No pending requests"
         />
+        )}
         <StatCard
           href="/admin/horses"
           count={injuryCount ?? 0}
           label="Open injuries"
           emptyLabel="No open injuries"
         />
-        <StatCard
+        {isAdmin && (
+          <StatCard
           href="/admin/bookings"
           count={bookingCount ?? 0}
           label="Bookings in the next 7 days"
           emptyLabel="No bookings this week"
         />
+        )}
         <StatCard
           href="/admin/care"
           count={careDue.length}
           label="Care items due or overdue"
           emptyLabel="No care due"
         />
-        <StatCard
+        {isAdmin && (
+          <StatCard
           href="/admin/contact"
           count={enquiryCount ?? 0}
           label="New enquiries"
           emptyLabel="No new enquiries"
         />
+        )}
       </section>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
         <div className="flex flex-col gap-8">
-          {bookingRequests && bookingRequests.length > 0 && (
+          {isAdmin && bookingRequests && bookingRequests.length > 0 && (
             <DashboardSection title="Booking Requests to Approve" href="/admin/bookings">
               {bookingRequests.map((b) => (
                 <Row key={b.id} href="/admin/bookings">
@@ -170,7 +185,7 @@ export default async function AdminHome() {
             </DashboardSection>
           )}
 
-          {unreadConversations.length > 0 && (
+          {isAdmin && unreadConversations.length > 0 && (
             <DashboardSection title="Unread Messages" href="/admin/messages">
               {unreadConversations.map((c) => (
                 <Row key={c.id} href={`/admin/messages/${c.id}`}>
@@ -183,7 +198,7 @@ export default async function AdminHome() {
             </DashboardSection>
           )}
 
-          {requests && requests.length > 0 && (
+          {isAdmin && requests && requests.length > 0 && (
             <DashboardSection title="Pending Change Requests" href="/admin/requests">
               {requests.map((r) => (
                 <Row key={r.id} href="/admin/requests">
@@ -223,7 +238,7 @@ export default async function AdminHome() {
             </DashboardSection>
           )}
 
-          {bookings && bookings.length > 0 && (
+          {isAdmin && bookings && bookings.length > 0 && (
             <DashboardSection title="Upcoming Bookings" href="/admin/bookings">
               {bookings.map((b) => (
                 <Row key={b.id} href="/admin/bookings">

@@ -4,6 +4,10 @@ import { updateHorse, postHorseUpdate } from "@/lib/actions/horses";
 import { createInjuryReport, addInjuryNote } from "@/lib/actions/injuries";
 import { notFound } from "next/navigation";
 import FeedPlanFields from "@/components/shared/FeedPlanFields";
+import StaffHorseSummary from "@/components/shared/StaffHorseSummary";
+import { careItems, loadCareIntervals } from "@/lib/care";
+import { currentRole } from "@/lib/roles";
+import PhotoInput from "@/components/shared/PhotoInput";
 
 export default async function AdminHorseDetailPage({
   params,
@@ -40,6 +44,11 @@ export default async function AdminHorseDetailPage({
     ]);
 
   if (!horse) notFound();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isAdmin = (await currentRole(supabase, user?.id)) === "admin";
+  const careIntervals = await loadCareIntervals(supabase);
 
   const currentOwner = owners?.find((o) => o.id === horse.owner_id);
   const updateHorseWithId = updateHorse.bind(null, horseId);
@@ -50,6 +59,7 @@ export default async function AdminHorseDetailPage({
     <div>
       <h1 className="text-2xl font-semibold text-brand-dark">{horse.name}</h1>
 
+      {isAdmin ? (
       <section className="mt-6">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">
           Details
@@ -151,12 +161,7 @@ export default async function AdminHorseDetailPage({
 
           <label className="flex flex-col gap-1 text-sm font-medium text-brand-dark">
             Replace Photo
-            <input
-              type="file"
-              name="photo"
-              accept="image/*"
-              className="text-sm"
-            />
+            <PhotoInput />
           </label>
 
           {horse.photo_url && (
@@ -286,6 +291,13 @@ export default async function AdminHorseDetailPage({
           </button>
         </form>
       </section>
+      ) : (
+        <StaffHorseSummary
+          horse={horse}
+          paddockName={paddocks?.find((p) => p.id === horse.paddock_id)?.name ?? null}
+          careItems={careItems(horse, careIntervals)}
+        />
+      )}
 
       <section className="mt-10">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">
@@ -311,7 +323,7 @@ export default async function AdminHorseDetailPage({
             placeholder="Details (optional)"
             className="rounded-lg border border-black/15 px-4 py-2 text-sm outline-none focus:border-brand"
           />
-          <input type="file" name="photo" accept="image/*" className="text-sm" />
+          <PhotoInput />
           <button
             type="submit"
             className="w-fit rounded-full bg-brand px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
@@ -389,12 +401,7 @@ export default async function AdminHorseDetailPage({
                         placeholder="Add a progress note..."
                         className="rounded-lg border border-black/15 px-3 py-2 text-sm outline-none focus:border-brand"
                       />
-                      <input
-                        type="file"
-                        name="photo"
-                        accept="image/*"
-                        className="text-sm"
-                      />
+                      <PhotoInput />
                       <select
                         name="status"
                         defaultValue={report.status}
@@ -450,12 +457,7 @@ export default async function AdminHorseDetailPage({
           </label>
           <label className="flex flex-col gap-1 text-sm font-medium text-brand-dark">
             Photo
-            <input
-              type="file"
-              name="photo"
-              accept="image/*"
-              className="text-sm"
-            />
+            <PhotoInput />
           </label>
           <button
             type="submit"
