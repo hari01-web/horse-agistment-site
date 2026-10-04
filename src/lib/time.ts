@@ -18,6 +18,16 @@ export function nextDay(date: string) {
   return d.toISOString().slice(0, 10);
 }
 
+// e.g. "Sunday 4 October"
+export function formatLongDate(value: string | Date = new Date()) {
+  return new Date(value).toLocaleDateString("en-AU", {
+    timeZone: TIME_ZONE,
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+}
+
 export function formatDateTime(value: string | Date) {
   return new Date(value).toLocaleString("en-AU", {
     timeZone: TIME_ZONE,

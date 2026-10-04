@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createHorse } from "@/lib/actions/horses";
+import FeedPlanFields from "@/components/shared/FeedPlanFields";
 
 export default async function NewHorsePage() {
   const supabase = await createClient();
@@ -123,6 +124,11 @@ export default async function NewHorsePage() {
             className="text-sm"
           />
         </label>
+
+        <h2 className="mt-4 text-sm font-semibold uppercase tracking-wide text-brand">
+          Feed Plan
+        </h2>
+        <FeedPlanFields />
 
         <h2 className="mt-4 text-sm font-semibold uppercase tracking-wide text-brand">
           Care Team

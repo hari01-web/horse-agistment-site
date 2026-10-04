@@ -3,6 +3,7 @@ import { formatDateTime } from "@/lib/time";
 import { updateHorse, postHorseUpdate } from "@/lib/actions/horses";
 import { createInjuryReport, addInjuryNote } from "@/lib/actions/injuries";
 import { notFound } from "next/navigation";
+import FeedPlanFields from "@/components/shared/FeedPlanFields";
 
 export default async function AdminHorseDetailPage({
   params,
@@ -166,6 +167,11 @@ export default async function AdminHorseDetailPage({
               className="h-40 w-40 rounded-lg object-cover"
             />
           )}
+
+          <h3 className="mt-2 text-sm font-semibold uppercase tracking-wide text-brand">
+            Feed Plan
+          </h3>
+          <FeedPlanFields horse={horse} />
 
           <h3 className="mt-2 text-sm font-semibold uppercase tracking-wide text-brand">
             Care Team

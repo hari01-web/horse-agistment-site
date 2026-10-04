@@ -4,6 +4,8 @@ import {
   getOrCreateOwnerConversation,
   sendMessage,
 } from "@/lib/actions/messages";
+import { markConversationRead } from "@/lib/dashboard";
+import RefreshOnMount from "@/components/shared/RefreshOnMount";
 
 export default async function PortalMessagesPage() {
   const supabase = await createClient();
@@ -12,6 +14,7 @@ export default async function PortalMessagesPage() {
   } = await supabase.auth.getUser();
 
   const conversationId = await getOrCreateOwnerConversation(user!.id);
+  const hadUnread = await markConversationRead(supabase, conversationId);
 
   const { data: messages } = await supabase
     .from("conversation_messages")
@@ -27,6 +30,7 @@ export default async function PortalMessagesPage() {
 
   return (
     <div>
+      {hadUnread && <RefreshOnMount />}
       <h1 className="text-2xl font-semibold text-brand-dark">Messages</h1>
 
       <div className="mt-6 flex flex-col gap-3">

@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatDateTime } from "@/lib/time";
 import { sendMessage } from "@/lib/actions/messages";
+import { markConversationRead } from "@/lib/dashboard";
+import RefreshOnMount from "@/components/shared/RefreshOnMount";
 import { notFound } from "next/navigation";
 
 export default async function AdminConversationPage({
@@ -13,6 +15,7 @@ export default async function AdminConversationPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const hadUnread = await markConversationRead(supabase, conversationId);
 
   const [{ data: conversation }, { data: messages }] = await Promise.all([
     supabase
@@ -37,6 +40,7 @@ export default async function AdminConversationPage({
 
   return (
     <div>
+      {hadUnread && <RefreshOnMount />}
       <h1 className="text-2xl font-semibold text-brand-dark">
         {/* @ts-expect-error -- joined relation shape */}
         {conversation.profiles?.full_name || conversation.profiles?.email}

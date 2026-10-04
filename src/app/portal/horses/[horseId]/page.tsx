@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { formatDateTime } from "@/lib/time";
 import { notFound } from "next/navigation";
 import PaddockMap from "@/components/shared/PaddockMap";
+import FeedPlan from "@/components/shared/FeedPlan";
 
 export default async function PortalHorseDetailPage({
   params,
@@ -116,6 +117,15 @@ export default async function PortalHorseDetailPage({
           )}
         </section>
       )}
+
+      <section className="mt-8 max-w-xl">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">
+          Feeding Plan
+        </h2>
+        <div className="mt-2">
+          <FeedPlan horse={horse} />
+        </div>
+      </section>
 
       <section className="mt-8 grid max-w-xl gap-6 sm:grid-cols-2">
         <div>
