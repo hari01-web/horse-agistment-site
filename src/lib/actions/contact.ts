@@ -1,6 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { after } from "next/server";
+import { alertAdmin, preview } from "@/lib/email";
 
 export async function submitContactForm(formData: FormData) {
   const name = formData.get("name")?.toString().trim();
@@ -25,6 +27,14 @@ export async function submitContactForm(formData: FormData) {
       error: "Something went wrong submitting your message. Please try again.",
     };
   }
+
+  after(() =>
+    alertAdmin(
+      `Website enquiry from ${name}`,
+      [`${name} (${email}${phone ? `, ${phone}` : ""}) wrote:`, preview(message, 1000)],
+      "/admin/contact",
+    ),
+  );
 
   return { success: true };
 }

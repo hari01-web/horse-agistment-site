@@ -3,6 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { emailOwnerAboutHorse } from "@/lib/email-alerts";
+import { preview } from "@/lib/email";
 
 async function uploadPhotoIfPresent(
   supabase: SupabaseClient,
@@ -52,6 +54,17 @@ export async function createInjuryReport(horseId: string, formData: FormData) {
       photo_url,
     });
   }
+
+  await emailOwnerAboutHorse(
+    supabase,
+    horseId,
+    (name) => `Injury report: ${name}`,
+    (name) => [
+      `We've noticed an injury on ${name}: ${title}.`,
+      ...(body ? [preview(body)] : []),
+      "We'll keep you updated with progress notes on the website.",
+    ],
+  );
 
   revalidatePath(`/admin/horses/${horseId}`);
   revalidatePath(`/portal/horses/${horseId}`);

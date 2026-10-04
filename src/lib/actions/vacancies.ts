@@ -3,6 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import type { FormState } from "@/lib/actions/auth";
+import { after } from "next/server";
+import { alertAdmin } from "@/lib/email";
 
 export async function joinWaitingList(
   _prev: FormState,
@@ -22,6 +24,13 @@ export async function joinWaitingList(
   });
   if (error) return { error: "Something went wrong. Please try again." };
 
+  after(() =>
+    alertAdmin(
+      `${name} joined the waiting list`,
+      [`${name} (${email}) would like agistment.`],
+      "/admin/waiting-list",
+    ),
+  );
   revalidatePath("/admin/waiting-list");
   return { success: "Thanks — you're on the waiting list. We'll be in touch when a space opens up." };
 }

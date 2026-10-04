@@ -2,6 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import { alertAdmin, preview } from "@/lib/email";
 
 export async function submitCareRequest(formData: FormData) {
   const supabase = await createClient();
@@ -24,6 +26,19 @@ export async function submitCareRequest(formData: FormData) {
   });
 
   if (error) throw new Error(error.message);
+
+  const { data: horse } = await supabase
+    .from("horses")
+    .select("name")
+    .eq("id", horse_id)
+    .single();
+  after(() =>
+    alertAdmin(
+      `${String(type).toUpperCase()} change request for ${horse?.name ?? "a horse"}`,
+      [`From ${user.email}:`, preview(body)],
+      "/admin/requests",
+    ),
+  );
 
   revalidatePath("/portal/requests");
 }

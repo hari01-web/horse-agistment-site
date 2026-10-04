@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getOrCreateOwnerConversation } from "@/lib/actions/messages";
 import { formatDateTime } from "@/lib/time";
+import { after } from "next/server";
+import { alertAdmin, sendEmail } from "@/lib/email";
 
 export async function bookSlot(formData: FormData) {
   const supabase = await createClient();
@@ -16,13 +18,26 @@ export async function bookSlot(formData: FormData) {
     redirect(`/portal/book?date=${date}&error=${encodeURIComponent("Please select a time slot.")}`);
   }
 
-  const { error } = await supabase.rpc("book_slot", {
+  const { data: booking, error } = await supabase.rpc("book_slot", {
     p_slot_start: slot_start,
     p_horse_id: horse_id,
   });
 
   if (error) {
     redirect(`/portal/book?date=${date}&error=${encodeURIComponent(error.message)}`);
+  }
+
+  if (booking?.status === "pending") {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    after(() =>
+      alertAdmin(
+        "Booking request awaiting approval",
+        [`${user?.email} has requested ${formatDateTime(slot_start)}.`],
+        "/admin/bookings",
+      ),
+    );
   }
 
   revalidatePath("/portal/bookings");
@@ -71,6 +86,28 @@ export async function decideBookingRequest(
         ? `Your booking request for ${when} has been approved — see you then!`
         : `Sorry, we can't accommodate your booking request for ${when}. Please get in touch or choose another time.`,
   });
+
+  const { data: rider } = await supabase
+    .from("profiles")
+    .select("email")
+    .eq("id", booking.rider_id)
+    .single();
+  after(() =>
+    sendEmail({
+      to: rider?.email,
+      subject:
+        decision === "confirmed"
+          ? "Your booking request is approved"
+          : "About your booking request",
+      lines: [
+        decision === "confirmed"
+          ? `Your booking request for ${when} has been approved — see you then!`
+          : `Sorry, we can't accommodate your booking request for ${when}.`,
+      ],
+      linkPath: "/portal/bookings",
+      linkLabel: "View my bookings",
+    }),
+  );
 
   revalidatePath("/admin/bookings");
   revalidatePath("/admin");

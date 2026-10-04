@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { preview } from "@/lib/email";
+import { emailOwnerAboutHorse } from "@/lib/email-alerts";
 
 async function uploadPhotoIfPresent(
   supabase: SupabaseClient,
@@ -135,6 +137,17 @@ export async function postHorseUpdate(horseId: string, formData: FormData) {
 
   if (error) throw new Error(error.message);
 
+  await emailOwnerAboutHorse(
+    supabase,
+    horseId,
+    (name) => `New update about ${name}`,
+    (name) => [
+      `There's a new ${formData.get("type") || "general"} update about ${name}${photo_url ? " (with a photo)" : ""}:`,
+      preview(formData.get("body")?.toString() || "See the photo on the website."),
+    ],
+  );
+
   revalidatePath(`/admin/horses/${horseId}`);
   revalidatePath(`/portal/horses/${horseId}`);
 }
+
