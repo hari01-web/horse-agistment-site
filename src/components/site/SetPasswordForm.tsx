@@ -1,48 +1,56 @@
 "use client";
 
 import { useActionState } from "react";
-import Link from "next/link";
-import { signIn, type FormState } from "@/lib/actions/auth";
+import { setPassword, type FormState } from "@/lib/actions/auth";
 
 const inputClass =
   "rounded-lg border border-black/15 px-4 py-2.5 text-sm outline-none focus:border-brand";
 
-export default function LoginForm({ linkFailed }: { linkFailed: boolean }) {
+export default function SetPasswordForm({ email }: { email: string }) {
   const [state, formAction, pending] = useActionState<FormState, FormData>(
-    signIn,
+    setPassword,
     {},
   );
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-20">
       <h1 className="text-2xl font-semibold tracking-tight text-brand-dark">
-        Owner &amp; Admin Login
+        Choose Your Password
       </h1>
+      <p className="mt-2 text-sm text-foreground/70">
+        For {email}. Use at least 8 characters — a few random words works
+        well.
+      </p>
 
       <form action={formAction} className="mt-8 flex flex-col gap-4">
-        {linkFailed && !state.error && (
-          <p className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
-            That link didn&apos;t work — it may have expired or already been
-            used. Use &quot;Forgot or set password&quot; below to get a new one.
-          </p>
-        )}
+        {/* Lets password managers save the password against the right email. */}
+        <input
+          type="email"
+          name="username"
+          value={email}
+          autoComplete="username"
+          readOnly
+          hidden
+        />
         <label className="flex flex-col gap-1 text-sm font-medium text-brand-dark">
-          Email
-          <input
-            type="email"
-            name="email"
-            required
-            autoComplete="email"
-            className={inputClass}
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm font-medium text-brand-dark">
-          Password
+          New password
           <input
             type="password"
             name="password"
             required
-            autoComplete="current-password"
+            minLength={8}
+            autoComplete="new-password"
+            className={inputClass}
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-sm font-medium text-brand-dark">
+          Confirm new password
+          <input
+            type="password"
+            name="confirm"
+            required
+            minLength={8}
+            autoComplete="new-password"
             className={inputClass}
           />
         </label>
@@ -51,7 +59,7 @@ export default function LoginForm({ linkFailed }: { linkFailed: boolean }) {
           disabled={pending}
           className="rounded-full bg-brand px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-dark disabled:opacity-60"
         >
-          {pending ? "Signing in..." : "Sign In"}
+          {pending ? "Saving..." : "Save Password"}
         </button>
         {state.error && (
           <p aria-live="polite" className="text-sm text-red-600">
@@ -59,17 +67,6 @@ export default function LoginForm({ linkFailed }: { linkFailed: boolean }) {
           </p>
         )}
       </form>
-
-      <Link
-        href="/forgot-password"
-        className="mt-6 text-sm font-medium text-brand-dark underline hover:text-brand"
-      >
-        Forgot or set password
-      </Link>
-      <p className="mt-6 text-xs text-foreground/50">
-        Owner accounts are set up by Strathyre Park. If you don&apos;t have
-        one yet, please get in touch.
-      </p>
     </div>
   );
 }
