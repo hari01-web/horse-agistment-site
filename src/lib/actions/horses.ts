@@ -43,6 +43,8 @@ function horseFieldsFromFormData(formData: FormData) {
     farrier_phone: formData.get("farrier_phone") || null,
     last_trim_date: formData.get("last_trim_date") || null,
     last_dental_date: formData.get("last_dental_date") || null,
+    last_vaccination_date: formData.get("last_vaccination_date") || null,
+    last_worming_date: formData.get("last_worming_date") || null,
     dental_provider: formData.get("dental_provider") || null,
     emergency_contact_name: formData.get("emergency_contact_name") || null,
     emergency_contact_phone: formData.get("emergency_contact_phone") || null,

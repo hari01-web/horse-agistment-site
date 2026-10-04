@@ -35,3 +35,32 @@ export function formatDateTime(value: string | Date) {
     timeStyle: "short",
   });
 }
+
+// Calendar date (YYYY-MM-DD) of an instant, in Queensland.
+export function localDateOf(value: string | Date) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: TIME_ZONE }).format(
+    new Date(value),
+  );
+}
+
+// e.g. "9:00 am"
+export function formatTime(value: string | Date) {
+  return new Date(value).toLocaleTimeString("en-AU", {
+    timeZone: TIME_ZONE,
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+// Adds whole days to a YYYY-MM-DD date.
+export function addDaysToDate(date: string, days: number) {
+  const d = new Date(`${date}T00:00:00.000Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+// The Monday on or before a YYYY-MM-DD date.
+export function mondayOf(date: string) {
+  const dow = new Date(`${date}T00:00:00.000Z`).getUTCDay(); // 0 = Sunday
+  return addDaysToDate(date, dow === 0 ? -6 : 1 - dow);
+}

@@ -3,6 +3,8 @@ import { formatDateTime } from "@/lib/time";
 import { notFound } from "next/navigation";
 import PaddockMap from "@/components/shared/PaddockMap";
 import FeedPlan from "@/components/shared/FeedPlan";
+import CareSchedule from "@/components/shared/CareSchedule";
+import { careItems, loadCareIntervals } from "@/lib/care";
 
 export default async function PortalHorseDetailPage({
   params,
@@ -34,6 +36,7 @@ export default async function PortalHorseDetailPage({
     ]);
 
   if (!horse) notFound();
+  const careIntervals = await loadCareIntervals(supabase);
 
   const paddockLogs = horse.paddock_id
     ? (
@@ -154,25 +157,16 @@ export default async function PortalHorseDetailPage({
 
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">
-            Care Dates
+            Care Schedule
           </h2>
-          <dl className="mt-2 space-y-1 text-sm text-foreground/80">
-            <div>
-              <dt className="inline font-medium text-brand-dark">
-                Last Trim:{" "}
-              </dt>
-              <dd className="inline">{horse.last_trim_date || "—"}</dd>
-            </div>
-            <div>
-              <dt className="inline font-medium text-brand-dark">
-                Last Dental:{" "}
-              </dt>
-              <dd className="inline">
-                {horse.last_dental_date || "—"}
-                {horse.dental_provider ? ` (${horse.dental_provider})` : ""}
-              </dd>
-            </div>
-          </dl>
+          <div className="mt-2">
+            <CareSchedule items={careItems(horse, careIntervals)} />
+          </div>
+          {horse.dental_provider && (
+            <p className="mt-2 text-xs text-foreground/60">
+              Dental provider: {horse.dental_provider}
+            </p>
+          )}
         </div>
 
         {(horse.emergency_contact_name || horse.emergency_contact_phone) && (

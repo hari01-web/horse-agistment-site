@@ -231,6 +231,24 @@ export default async function AdminHorseDetailPage({
             />
           </label>
           <label className="flex flex-col gap-1 text-sm font-medium text-brand-dark">
+            Last Vaccination Date
+            <input
+              type="date"
+              name="last_vaccination_date"
+              defaultValue={horse.last_vaccination_date ?? ""}
+              className="rounded-lg border border-black/15 px-4 py-2.5 text-sm outline-none focus:border-brand"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm font-medium text-brand-dark">
+            Last Worming Date
+            <input
+              type="date"
+              name="last_worming_date"
+              defaultValue={horse.last_worming_date ?? ""}
+              className="rounded-lg border border-black/15 px-4 py-2.5 text-sm outline-none focus:border-brand"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm font-medium text-brand-dark">
             Dental Provider
             <input
               name="dental_provider"

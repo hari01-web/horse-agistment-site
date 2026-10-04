@@ -34,11 +34,12 @@ export default async function PortalLayout({
     { href: "/portal/bookings", label: "My Bookings" },
     { href: "/portal/messages", label: "Messages", badge: unread.total },
     { href: "/portal/requests", label: "Request a Change" },
+    { href: "/portal/account", label: "My Details" },
   ];
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 py-8">
-      <div className="mb-6 flex items-center justify-between border-b border-black/10 pb-4">
+      <div className="mb-6 flex items-center justify-between border-b border-black/10 pb-4 print:hidden">
         <div>
           <p className="text-sm text-foreground/60">Owner Portal</p>
           <p className="font-medium text-brand-dark">{user?.email}</p>

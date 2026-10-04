@@ -22,11 +22,11 @@ export default function FeedingList({
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 print:grid print:grid-cols-2 print:gap-2">
       {horses.map((horse) => (
         <div
           key={horse.id}
-          className={`rounded-xl border bg-white/70 p-4 ${
+          className={`break-inside-avoid rounded-xl border bg-white/70 p-4 print:p-2 ${
             horse.pendingFeedRequests.length > 0
               ? "border-amber-400"
               : "border-black/10"

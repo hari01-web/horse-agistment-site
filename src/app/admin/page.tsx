@@ -5,6 +5,14 @@ import { formatDateTime, formatLongDate } from "@/lib/time";
 import StatCard from "@/components/shared/StatCard";
 import FeedingList from "@/components/shared/FeedingList";
 import { DashboardSection, Row } from "@/components/shared/Dashboard";
+import { CARE_PILL } from "@/components/shared/CareSchedule";
+import {
+  CARE_DATE_COLUMNS,
+  careItems,
+  describeDue,
+  loadCareIntervals,
+  needsAttention,
+} from "@/lib/care";
 
 type Named = { full_name: string | null; email: string | null } | null;
 const personName = (p: Named) => p?.full_name || p?.email || "Unknown";
@@ -23,6 +31,8 @@ export default async function AdminHome() {
     { count: enquiryCount },
     feedingHorses,
     { data: bookingRequests },
+    careIntervals,
+    { data: careHorses },
   ] = await Promise.all([
     unreadMessageCounts(supabase),
     supabase.from("conversations").select("id, profiles(full_name, email)"),
@@ -60,7 +70,18 @@ export default async function AdminHome() {
       .select("id, slot_start, horses(name), profiles(full_name, email)")
       .eq("status", "pending")
       .order("slot_start"),
+    loadCareIntervals(supabase),
+    supabase.from("horses").select(`id, name, ${CARE_DATE_COLUMNS}`),
   ]);
+
+  const careDue = (careHorses ?? [])
+    .flatMap((horse) =>
+      needsAttention(careItems(horse, careIntervals)).map((item) => ({
+        horse,
+        item,
+      })),
+    )
+    .sort((a, b) => (a.item.daysUntilDue ?? 0) - (b.item.daysUntilDue ?? 0));
 
   const unreadConversations = (conversations ?? [])
     .filter((c) => unread.byConversation[c.id])
@@ -75,7 +96,7 @@ export default async function AdminHome() {
       <h1 className="text-2xl font-semibold text-brand-dark">Admin Home</h1>
       <p className="mt-1 text-sm text-foreground/60">{formatLongDate(now)}</p>
 
-      <section className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-5">
+      <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
         <StatCard
           href="/admin/messages"
           count={unread.total}
@@ -101,6 +122,12 @@ export default async function AdminHome() {
           emptyLabel="No bookings this week"
         />
         <StatCard
+          href="/admin/care"
+          count={careDue.length}
+          label="Care items due or overdue"
+          emptyLabel="No care due"
+        />
+        <StatCard
           href="/admin/contact"
           count={enquiryCount ?? 0}
           label="New enquiries"
@@ -119,6 +146,24 @@ export default async function AdminHome() {
                   </span>
                   <span className="text-sm text-foreground/70">
                     {personName(b.profiles as unknown as Named)}
+                  </span>
+                </Row>
+              ))}
+            </DashboardSection>
+          )}
+
+          {careDue.length > 0 && (
+            <DashboardSection title="Care Due" href="/admin/care">
+              {careDue.slice(0, 6).map(({ horse, item }) => (
+                <Row key={horse.id + item.kind} href={`/admin/horses/${horse.id}`}>
+                  <span>
+                    <span className="font-medium text-brand-dark">{horse.name}</span>
+                    <span className="block text-sm text-foreground/70">{item.kind}</span>
+                  </span>
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${CARE_PILL[item.status]}`}
+                  >
+                    {describeDue(item)}
                   </span>
                 </Row>
               ))}

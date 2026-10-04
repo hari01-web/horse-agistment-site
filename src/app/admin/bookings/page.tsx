@@ -40,6 +40,12 @@ export default async function AdminBookingsPage() {
             Book a Ride
           </Link>
           <Link
+            href="/admin/bookings/calendar"
+            className="rounded-full border border-brand-dark/30 px-5 py-2 text-sm font-semibold text-brand-dark transition-colors hover:bg-brand-cream"
+          >
+            Calendar
+          </Link>
+          <Link
             href="/admin/bookings/settings"
             className="rounded-full border border-brand-dark/30 px-5 py-2 text-sm font-semibold text-brand-dark transition-colors hover:bg-brand-cream"
           >

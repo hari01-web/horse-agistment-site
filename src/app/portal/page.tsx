@@ -5,6 +5,14 @@ import { loadFeedingHorses } from "@/lib/feeding";
 import { formatDateTime, formatLongDate } from "@/lib/time";
 import StatCard from "@/components/shared/StatCard";
 import BookingStatus from "@/components/shared/BookingStatus";
+import { CARE_PILL } from "@/components/shared/CareSchedule";
+import {
+  CARE_DATE_COLUMNS,
+  careItems,
+  describeDue,
+  loadCareIntervals,
+  needsAttention,
+} from "@/lib/care";
 import FeedPlan from "@/components/shared/FeedPlan";
 import { DashboardSection, Row } from "@/components/shared/Dashboard";
 
@@ -24,10 +32,11 @@ export default async function PortalHome() {
     { data: injuries, count: injuryCount },
     { data: bookings, count: bookingCount },
     feedingHorses,
+    careIntervals,
   ] = await Promise.all([
     supabase
       .from("horses")
-      .select("id, name, breed, status, photo_url, paddocks(name)")
+      .select(`id, name, breed, status, photo_url, paddocks(name), ${CARE_DATE_COLUMNS}`)
       .eq("owner_id", userId)
       .order("name"),
     unreadMessageCounts(supabase),
@@ -50,7 +59,12 @@ export default async function PortalHome() {
       .order("slot_start")
       .limit(5),
     loadFeedingHorses(supabase, userId),
+    loadCareIntervals(supabase),
   ]);
+
+  const careDue = (horses ?? []).flatMap((horse) =>
+    needsAttention(careItems(horse, careIntervals)).map((item) => ({ horse, item })),
+  );
 
   const horseName = (h: unknown) => (h as { name: string } | null)?.name;
 
@@ -119,6 +133,24 @@ export default async function PortalHome() {
                 </Link>
               ))}
             </DashboardSection>
+
+            {careDue.length > 0 && (
+              <DashboardSection title="Care Coming Up">
+                {careDue.map(({ horse, item }) => (
+                  <Row key={horse.id + item.kind} href={`/portal/horses/${horse.id}`}>
+                    <span>
+                      <span className="font-medium text-brand-dark">{horse.name}</span>
+                      <span className="block text-sm text-foreground/70">{item.kind}</span>
+                    </span>
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${CARE_PILL[item.status]}`}
+                    >
+                      {describeDue(item)}
+                    </span>
+                  </Row>
+                ))}
+              </DashboardSection>
+            )}
 
             {injuries && injuries.length > 0 && (
               <DashboardSection title="Open Injuries">

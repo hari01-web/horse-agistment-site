@@ -21,7 +21,7 @@ export default function AreaNav({
     (href !== homeHref && pathname.startsWith(`${href}/`));
 
   return (
-    <nav aria-label="Section menu" className="md:w-52 md:shrink-0">
+    <nav aria-label="Section menu" className="md:w-52 md:shrink-0 print:hidden">
       <ul className="-mx-6 flex gap-2 overflow-x-auto px-6 pb-2 md:mx-0 md:flex-col md:gap-1 md:overflow-visible md:px-0 md:pb-0">
         {items.map((item) => {
           const active = isActive(item.href);

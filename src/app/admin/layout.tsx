@@ -2,6 +2,12 @@ import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/lib/actions/auth";
 import { unreadMessageCounts } from "@/lib/dashboard";
 import AreaNav from "@/components/shared/AreaNav";
+import {
+  CARE_DATE_COLUMNS,
+  careItems,
+  loadCareIntervals,
+  needsAttention,
+} from "@/lib/care";
 
 export default async function AdminLayout({
   children,
@@ -17,6 +23,8 @@ export default async function AdminLayout({
     { count: pendingRequests },
     { count: newEnquiries },
     { count: bookingRequests },
+    careIntervals,
+    { data: careHorses },
   ] = await Promise.all([
     supabase.auth.getUser(),
     unreadMessageCounts(supabase),
@@ -32,12 +40,19 @@ export default async function AdminLayout({
       .from("bookings")
       .select("id", { count: "exact", head: true })
       .eq("status", "pending"),
+    loadCareIntervals(supabase),
+    supabase.from("horses").select(CARE_DATE_COLUMNS),
   ]);
+  const careDue = (careHorses ?? []).reduce(
+    (n, horse) => n + needsAttention(careItems(horse, careIntervals)).length,
+    0,
+  );
 
   const items = [
     { href: "/admin", label: "Home" },
     { href: "/admin/horses", label: "Horses" },
     { href: "/admin/feeding", label: "Feeding" },
+    { href: "/admin/care", label: "Care Schedule", badge: careDue },
     { href: "/admin/overview", label: "Owners" },
     { href: "/admin/bookings", label: "Bookings", badge: bookingRequests ?? 0 },
     { href: "/admin/messages", label: "Messages", badge: unread.total },
@@ -48,7 +63,7 @@ export default async function AdminLayout({
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 py-8">
-      <div className="mb-6 flex items-center justify-between border-b border-black/10 pb-4">
+      <div className="mb-6 flex items-center justify-between border-b border-black/10 pb-4 print:hidden">
         <div>
           <p className="text-sm text-foreground/60">Admin</p>
           <p className="font-medium text-brand-dark">{user?.email}</p>
