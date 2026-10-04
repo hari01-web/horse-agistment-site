@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { bookSlot } from "@/lib/actions/bookings";
+import BookingDatePicker from "@/components/portal/BookingDatePicker";
 import { UTC_OFFSET, nextDay, todayLocal } from "@/lib/time";
 
 function toMinutes(t: string) {
@@ -46,6 +47,9 @@ export default async function BookPage({
   const isOpenDay = settings?.days_open?.includes(dayOfWeek);
   const isBlackedOut = !!blackout;
 
+  const hoursMisconfigured =
+    !!settings && toMinutes(settings.open_time) >= toMinutes(settings.close_time);
+
   const slots: { time: string; iso: string; full: boolean }[] = [];
   if (settings && isOpenDay && !isBlackedOut) {
     const openMin = toMinutes(settings.open_time);
@@ -82,23 +86,7 @@ export default async function BookPage({
         Book a Ride
       </h1>
 
-      <form method="get" className="mt-6 flex items-end gap-3">
-        <label className="flex flex-col gap-1 text-sm font-medium text-brand-dark">
-          Date
-          <input
-            type="date"
-            name="date"
-            defaultValue={date}
-            className="rounded-lg border border-black/15 px-4 py-2.5 text-sm outline-none focus:border-brand"
-          />
-        </label>
-        <button
-          type="submit"
-          className="rounded-full border border-brand-dark/30 px-5 py-2.5 text-sm font-semibold text-brand-dark transition-colors hover:bg-brand-cream"
-        >
-          Change Date
-        </button>
-      </form>
+      <BookingDatePicker date={date} />
 
       {error && (
         <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">
@@ -114,9 +102,15 @@ export default async function BookPage({
         <p className="mt-6 text-foreground/70">
           We&apos;re closed for riding bookings on this day.
         </p>
+      ) : hoursMisconfigured ? (
+        <p className="mt-6 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+          Bookings aren&apos;t available right now because the opening time
+          isn&apos;t before the closing time. An admin can fix this under
+          Bookings → Booking Settings.
+        </p>
       ) : slots.length === 0 ? (
         <p className="mt-6 text-foreground/70">
-          There are no times left to book on this day.
+          There are no times left to book on this day. Try another date.
         </p>
       ) : (
         <form action={bookSlot} className="mt-6 flex flex-col gap-4">

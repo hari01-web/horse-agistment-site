@@ -2,8 +2,20 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 export async function updateBookingSettings(formData: FormData) {
+  const open_time = String(formData.get("open_time") ?? "").slice(0, 5);
+  const close_time = String(formData.get("close_time") ?? "").slice(0, 5);
+  // Times are "HH:MM", so comparing the text compares the times.
+  if (!open_time || !close_time || open_time >= close_time) {
+    redirect(
+      `/admin/bookings/settings?error=${encodeURIComponent(
+        "Opening time must be before closing time. Times are Queensland time.",
+      )}`,
+    );
+  }
+
   const supabase = await createClient();
   const days_open = formData
     .getAll("days_open")
@@ -13,8 +25,8 @@ export async function updateBookingSettings(formData: FormData) {
     .from("booking_settings")
     .update({
       slot_duration_minutes: Number(formData.get("slot_duration_minutes")),
-      open_time: formData.get("open_time"),
-      close_time: formData.get("close_time"),
+      open_time,
+      close_time,
       days_open,
       capacity_per_slot: Number(formData.get("capacity_per_slot")),
     })
@@ -24,6 +36,7 @@ export async function updateBookingSettings(formData: FormData) {
 
   revalidatePath("/admin/bookings/settings");
   revalidatePath("/portal/book");
+  redirect("/admin/bookings/settings"); // clears any earlier error message
 }
 
 export async function addBlackoutDate(formData: FormData) {

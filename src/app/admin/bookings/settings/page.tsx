@@ -15,7 +15,12 @@ const DAYS = [
   { value: 6, label: "Sat" },
 ];
 
-export default async function BookingSettingsPage() {
+export default async function BookingSettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
   const supabase = await createClient();
   const [{ data: settings }, { data: blackoutDates }] = await Promise.all([
     supabase.from("booking_settings").select("*").eq("id", 1).single(),
@@ -27,6 +32,15 @@ export default async function BookingSettingsPage() {
       <h1 className="text-2xl font-semibold text-brand-dark">
         Booking Settings
       </h1>
+
+      <p className="mt-2 text-sm text-foreground/60">
+        All times are Queensland time.
+      </p>
+      {error && (
+        <p className="mt-4 max-w-lg rounded-lg bg-red-50 p-3 text-sm text-red-600">
+          {error}
+        </p>
+      )}
 
       <section className="mt-6">
         <form
