@@ -30,17 +30,24 @@ export default async function BookPage({
     { data: blackout },
     { data: existingBookings },
     { data: horses },
+    { data: profile },
   ] = await Promise.all([
     supabase.from("booking_settings").select("*").eq("id", 1).single(),
     supabase.from("blackout_dates").select("*").eq("date", date).maybeSingle(),
-    supabase
-      .from("bookings")
-      .select("slot_start")
-      .eq("status", "confirmed")
-      .gte("slot_start", `${date}T00:00:00${UTC_OFFSET}`)
-      .lt("slot_start", `${nextDay(date)}T00:00:00${UTC_OFFSET}`),
+    supabase.rpc("booked_slot_counts", {
+      p_from: `${date}T00:00:00${UTC_OFFSET}`,
+      p_to: `${nextDay(date)}T00:00:00${UTC_OFFSET}`,
+    }),
     supabase.from("horses").select("id, name").eq("owner_id", user?.id ?? ""),
+    supabase.from("profiles").select("role").eq("id", user?.id ?? "").single(),
   ]);
+
+  // Beyond the advance-booking window, owners can request but admin approves.
+  const advanceDays: number = settings?.advance_booking_days ?? 14;
+  const daysAhead = Math.round(
+    (Date.parse(date) - Date.parse(todayLocal())) / 86_400_000,
+  );
+  const needsApproval = daysAhead > advanceDays && profile?.role !== "admin";
 
   // Day of week of the calendar date itself (not affected by time zones).
   const dayOfWeek = new Date(`${date}T00:00:00.000Z`).getUTCDay();
@@ -56,10 +63,11 @@ export default async function BookPage({
     const closeMin = toMinutes(settings.close_time);
 
     const bookedCounts: Record<string, number> = {};
-    existingBookings?.forEach((b) => {
-      const key = new Date(b.slot_start).toISOString();
-      bookedCounts[key] = (bookedCounts[key] || 0) + 1;
-    });
+    (existingBookings as { slot_start: string; taken: number }[] | null)?.forEach(
+      (b) => {
+        bookedCounts[new Date(b.slot_start).toISOString()] = Number(b.taken);
+      },
+    );
 
     for (
       let m = openMin;
@@ -114,6 +122,14 @@ export default async function BookPage({
         </p>
       ) : (
         <form action={bookSlot} className="mt-6 flex flex-col gap-4">
+          {needsApproval && (
+            <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+              This date is more than {advanceDays} days away, so your booking
+              will be a <strong>request</strong> until Strathyre Park approves
+              it. The time is held for you meanwhile, and you&apos;ll get a
+              message once it&apos;s approved or declined.
+            </p>
+          )}
           <input type="hidden" name="date" value={date} />
 
           {horses && horses.length > 0 && (
@@ -161,7 +177,7 @@ export default async function BookPage({
             type="submit"
             className="w-fit rounded-full bg-brand px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
           >
-            Book Selected Slot
+            {needsApproval ? "Request This Time" : "Book Selected Slot"}
           </button>
         </form>
       )}

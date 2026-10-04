@@ -16,6 +16,7 @@ export default async function AdminLayout({
     unread,
     { count: pendingRequests },
     { count: newEnquiries },
+    { count: bookingRequests },
   ] = await Promise.all([
     supabase.auth.getUser(),
     unreadMessageCounts(supabase),
@@ -27,6 +28,10 @@ export default async function AdminLayout({
       .from("contact_submissions")
       .select("id", { count: "exact", head: true })
       .eq("handled", false),
+    supabase
+      .from("bookings")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending"),
   ]);
 
   const items = [
@@ -34,7 +39,7 @@ export default async function AdminLayout({
     { href: "/admin/horses", label: "Horses" },
     { href: "/admin/feeding", label: "Feeding" },
     { href: "/admin/overview", label: "Owners" },
-    { href: "/admin/bookings", label: "Bookings" },
+    { href: "/admin/bookings", label: "Bookings", badge: bookingRequests ?? 0 },
     { href: "/admin/messages", label: "Messages", badge: unread.total },
     { href: "/admin/requests", label: "Change Requests", badge: pendingRequests ?? 0 },
     { href: "/admin/paddocks", label: "Paddocks" },

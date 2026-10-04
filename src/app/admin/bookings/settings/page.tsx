@@ -90,6 +90,21 @@ export default async function BookingSettingsPage({
             />
           </label>
 
+          <label className="flex flex-col gap-1 text-sm font-medium text-brand-dark">
+            Book Without Approval Up To (days ahead)
+            <input
+              type="number"
+              name="advance_booking_days"
+              defaultValue={settings?.advance_booking_days ?? 14}
+              min={0}
+              className="rounded-lg border border-black/15 px-4 py-2.5 text-sm outline-none focus:border-brand"
+            />
+            <span className="text-xs font-normal text-foreground/60">
+              Owners can still request later dates — you approve or decline
+              them under Bookings.
+            </span>
+          </label>
+
           <fieldset className="flex flex-col gap-2 text-sm font-medium text-brand-dark">
             Open Days
             <div className="flex flex-wrap gap-3">

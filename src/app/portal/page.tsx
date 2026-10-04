@@ -4,6 +4,7 @@ import { unreadMessageCounts } from "@/lib/dashboard";
 import { loadFeedingHorses } from "@/lib/feeding";
 import { formatDateTime, formatLongDate } from "@/lib/time";
 import StatCard from "@/components/shared/StatCard";
+import BookingStatus from "@/components/shared/BookingStatus";
 import FeedPlan from "@/components/shared/FeedPlan";
 import { DashboardSection, Row } from "@/components/shared/Dashboard";
 
@@ -43,8 +44,8 @@ export default async function PortalHome() {
       .order("updated_at", { ascending: false }),
     supabase
       .from("bookings")
-      .select("id, slot_start, horses(name)", { count: "exact" })
-      .eq("status", "confirmed")
+      .select("id, slot_start, status, horses(name)", { count: "exact" })
+      .in("status", ["confirmed", "pending"])
       .gte("slot_start", now.toISOString())
       .order("slot_start")
       .limit(5),
@@ -163,11 +164,10 @@ export default async function PortalHome() {
                     <span className="font-medium text-brand-dark">
                       {formatDateTime(b.slot_start)}
                     </span>
-                    {horseName(b.horses) && (
-                      <span className="text-sm text-foreground/70">
-                        {horseName(b.horses)}
-                      </span>
-                    )}
+                    <span className="flex items-center gap-2 text-sm text-foreground/70">
+                      {horseName(b.horses)}
+                      {b.status === "pending" && <BookingStatus status="pending" />}
+                    </span>
                   </Row>
                 ))}
               </DashboardSection>

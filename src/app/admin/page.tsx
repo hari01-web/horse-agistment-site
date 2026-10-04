@@ -22,6 +22,7 @@ export default async function AdminHome() {
     { data: bookings, count: bookingCount },
     { count: enquiryCount },
     feedingHorses,
+    { data: bookingRequests },
   ] = await Promise.all([
     unreadMessageCounts(supabase),
     supabase.from("conversations").select("id, profiles(full_name, email)"),
@@ -54,6 +55,11 @@ export default async function AdminHome() {
       .select("id", { count: "exact", head: true })
       .eq("handled", false),
     loadFeedingHorses(supabase),
+    supabase
+      .from("bookings")
+      .select("id, slot_start, horses(name), profiles(full_name, email)")
+      .eq("status", "pending")
+      .order("slot_start"),
   ]);
 
   const unreadConversations = (conversations ?? [])
@@ -104,6 +110,21 @@ export default async function AdminHome() {
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
         <div className="flex flex-col gap-8">
+          {bookingRequests && bookingRequests.length > 0 && (
+            <DashboardSection title="Booking Requests to Approve" href="/admin/bookings">
+              {bookingRequests.map((b) => (
+                <Row key={b.id} href="/admin/bookings">
+                  <span className="font-medium text-brand-dark">
+                    {formatDateTime(b.slot_start)}
+                  </span>
+                  <span className="text-sm text-foreground/70">
+                    {personName(b.profiles as unknown as Named)}
+                  </span>
+                </Row>
+              ))}
+            </DashboardSection>
+          )}
+
           {unreadConversations.length > 0 && (
             <DashboardSection title="Unread Messages" href="/admin/messages">
               {unreadConversations.map((c) => (

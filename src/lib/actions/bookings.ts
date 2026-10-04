@@ -3,6 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getOrCreateOwnerConversation } from "@/lib/actions/messages";
+import { formatDateTime } from "@/lib/time";
 
 export async function bookSlot(formData: FormData) {
   const supabase = await createClient();
@@ -36,4 +38,41 @@ export async function cancelBooking(bookingId: string) {
 
   revalidatePath("/portal/bookings");
   revalidatePath("/admin/bookings");
+}
+
+// Admin decision on a booking request beyond the advance-booking window.
+// The rider is told via their Messages.
+export async function decideBookingRequest(
+  bookingId: string,
+  decision: "confirmed" | "declined",
+) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { data: booking, error } = await supabase
+    .from("bookings")
+    .update({ status: decision })
+    .eq("id", bookingId)
+    .eq("status", "pending")
+    .select("rider_id, slot_start")
+    .single();
+  if (error) throw new Error(error.message);
+
+  const conversationId = await getOrCreateOwnerConversation(booking.rider_id);
+  const when = formatDateTime(booking.slot_start);
+  await supabase.from("conversation_messages").insert({
+    conversation_id: conversationId,
+    sender_id: user.id,
+    body:
+      decision === "confirmed"
+        ? `Your booking request for ${when} has been approved — see you then!`
+        : `Sorry, we can't accommodate your booking request for ${when}. Please get in touch or choose another time.`,
+  });
+
+  revalidatePath("/admin/bookings");
+  revalidatePath("/admin");
+  revalidatePath("/portal/bookings");
 }

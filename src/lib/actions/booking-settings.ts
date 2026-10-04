@@ -29,6 +29,10 @@ export async function updateBookingSettings(formData: FormData) {
       close_time,
       days_open,
       capacity_per_slot: Number(formData.get("capacity_per_slot")),
+      advance_booking_days: Math.max(
+        0,
+        Number(formData.get("advance_booking_days") ?? 14) || 0,
+      ),
     })
     .eq("id", 1);
 
