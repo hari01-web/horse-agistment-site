@@ -1,21 +1,19 @@
 import { NextResponse } from "next/server";
+import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { homeForUser } from "@/lib/auth-redirect";
 
-// Older-style login links (?code=...). These only work in the browser that
-// requested the link; /auth/confirm handles the newer any-browser links.
+// Login and invite links from the Supabase email templates point here with a
+// token_hash. Unlike ?code= links, these work in any browser or device.
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get("code");
-  const next = searchParams.get("next");
+  const token_hash = searchParams.get("token_hash");
+  const type = searchParams.get("type") as EmailOtpType | null;
 
-  if (code) {
+  if (token_hash && type) {
     const supabase = await createClient();
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      if (next?.startsWith("/") && !next.startsWith("//")) {
-        return NextResponse.redirect(`${origin}${next}`);
-      }
+    const { data, error } = await supabase.auth.verifyOtp({ token_hash, type });
+    if (!error && data.user) {
       const home = await homeForUser(supabase, data.user.id);
       return NextResponse.redirect(`${origin}${home}`);
     }

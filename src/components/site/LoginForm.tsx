@@ -43,8 +43,7 @@ export default function LoginForm({ linkFailed }: { linkFailed: boolean }) {
         <div className="mt-8 rounded-lg bg-brand-cream/60 p-4 text-sm text-brand-dark">
           <p>Check your email for a sign-in link.</p>
           <p className="mt-2 text-brand-dark/70">
-            Open the link on this device, in this browser — it won&apos;t work
-            anywhere else.
+            The link can only be used once and expires after an hour.
           </p>
         </div>
       ) : (
