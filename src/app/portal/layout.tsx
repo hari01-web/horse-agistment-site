@@ -13,14 +13,16 @@ export default async function PortalLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [{ data: horses }, unread] = await Promise.all([
+  const [{ data: horses }, unread, { data: profile }] = await Promise.all([
     supabase
       .from("horses")
       .select("id, name")
       .eq("owner_id", user?.id ?? "")
       .order("name"),
     unreadMessageCounts(supabase),
+    supabase.from("profiles").select("role").eq("id", user?.id ?? "").single(),
   ]);
+  const isAdmin = profile?.role === "admin";
 
   const items = [
     { href: "/portal", label: "Home" },
@@ -48,7 +50,11 @@ export default async function PortalLayout({
         </form>
       </div>
       <div className="flex flex-col gap-6 md:flex-row md:gap-10">
-        <AreaNav items={items} homeHref="/portal" />
+        <AreaNav
+          items={items}
+          homeHref="/portal"
+          switchLink={isAdmin ? { href: "/admin", label: "Admin" } : undefined}
+        />
         <div className="min-w-0 flex-1">{children}</div>
       </div>
     </div>

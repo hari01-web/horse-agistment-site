@@ -55,7 +55,11 @@ export default async function AdminLayout({
         </form>
       </div>
       <div className="flex flex-col gap-6 md:flex-row md:gap-10">
-        <AreaNav items={items} homeHref="/admin" />
+        <AreaNav
+          items={items}
+          homeHref="/admin"
+          switchLink={{ href: "/portal", label: "Owner view" }}
+        />
         <div className="min-w-0 flex-1">{children}</div>
       </div>
     </div>

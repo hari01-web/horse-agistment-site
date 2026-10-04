@@ -14,12 +14,20 @@ export default async function AdminBookingsPage() {
     <div>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-brand-dark">Bookings</h1>
-        <Link
-          href="/admin/bookings/settings"
-          className="rounded-full border border-brand-dark/30 px-5 py-2 text-sm font-semibold text-brand-dark transition-colors hover:bg-brand-cream"
-        >
-          Booking Settings
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/portal/book"
+            className="rounded-full bg-brand px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
+          >
+            Book a Ride
+          </Link>
+          <Link
+            href="/admin/bookings/settings"
+            className="rounded-full border border-brand-dark/30 px-5 py-2 text-sm font-semibold text-brand-dark transition-colors hover:bg-brand-cream"
+          >
+            Booking Settings
+          </Link>
+        </div>
       </div>
 
       {!bookings || bookings.length === 0 ? (
